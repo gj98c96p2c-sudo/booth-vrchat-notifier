@@ -1,0 +1,1 @@
+# booth-vrchat-notifier
