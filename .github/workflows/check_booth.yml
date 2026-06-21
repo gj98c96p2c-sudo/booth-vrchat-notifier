@@ -1,0 +1,42 @@
+name: BOOTH VRChat無料商品チェック
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Pythonをセットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 依存パッケージをインストール
+        run: pip install -r requirements.txt
+
+      - name: checked_items.json がなければ作成
+        run: |
+          if [ ! -f checked_items.json ]; then
+            echo "[]" > checked_items.json
+          fi
+
+      - name: スクリプトを実行
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python booth_checker.py
+
+      - name: checked_items.json を保存
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update checked items"
+          file_pattern: checked_items.json
